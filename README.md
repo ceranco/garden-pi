@@ -53,4 +53,10 @@ To be able to consistently power your relay, the best thing to do is to use a tr
 As we need to power 8 different valves, we need an 8-channel relay board, as well as 8 transistors. To simplify the amount of electronic fiddling we need to do, we can simply use a transistor array, such as [ULN2803](https://www.theengineeringprojects.com/2018/10/introduction-to-uln2803.html), which as a bonus also protects our GPIO pins from kickback voltage!
 As we have this protection, we can use an 8-channel mechanical relay, specifically [ARE00108SL](https://rlx.sk/en/various-boards/3321-8-channel-relay-module-10a-er-are00108sl.html), which is locally available (Israel).
 
-Finally, we need a 24VAC transformater to provide power to our valves.
+Finally, we need a 24VAC transformer to provide power to our valves.
+
+**Safety Issues!**  
+> * The relay board will be powered using the 5V output of the PI, which has a maximum output current of 500mA. As each [individual relay](https://datasheetspdf.com/pdf-file/720556/Songle/SRD-05VDC-SL-C/1) draw about 72mA, this means we **can't** power all of them on at the same time.  
+> In practice, this limitation is not very meaningful as our 24VAC transformer can only safely turn on 4 valves at once (6 sustained), so we will need to be very careful when writing the software to forbid drawing too much current.24VACj
+>
+> * At first I thought that the PI's GPIO pins need to be connected to the ULN2803 using a resistor, but looking at the [diagram](https://www.ti.com/lit/ds/symlink/uln2803a.pdf?ts=1597840871187&ref_url=https%253A%252F%252Fwww.google.com%252F), it seems that transitor is protected by a **2.7kΩ** resistor, which means that we can connect it directly.
