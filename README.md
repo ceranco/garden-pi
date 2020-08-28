@@ -60,3 +60,71 @@ Finally, we need a 24VAC transformer to provide power to our valves.
 > In practice, this limitation is not very meaningful as our 24VAC transformer can only safely turn on 4 valves at once (6 sustained), so we will need to be very careful when writing the software to forbid drawing too much current.24VACj
 >
 > * At first I thought that the PI's GPIO pins need to be connected to the ULN2803 using a resistor, but looking at the [diagram](https://www.ti.com/lit/ds/symlink/uln2803a.pdf?ts=1597840871187&ref_url=https%253A%252F%252Fwww.google.com%252F), it seems that transitor is protected by a **2.7kΩ** resistor, which means that we can connect it directly.
+
+## Checking the parts
+
+So we did the homework and ordered and received the parts. The first thing to do is to make sure that everything actually works!  
+
+To do that, we first create a simple circuit using only the PI, the darlington array and the relay board: 
+
+![](images/test-1.png)
+
+As you can see, the relay board comes with handy debugging leds for each relay, which turn on when the corrensponding IN[X] pin is set.
+We the run the following simple python script:
+
+```py
+import sys
+import time
+import gpiozero
+
+RELAY_PIN = 6
+
+relay = gpiozero.OutputDevice(RELAY_PIN, active_high=True, initial_value=False)
+
+def set_relay(status):
+    if status:
+        print("Setting relay: ON")
+        relay.on()
+    else:
+        print("Setting relay: OFF")
+        relay.off()
+
+def main_loop():
+    while 1:
+        set_relay(False)
+        time.sleep(1)
+        set_relay(True)
+        time.sleep(1)
+
+
+if __name__ == "__main__":
+    try:
+        main_loop()
+    except KeyboardInterrupt:
+        # turn the relay off
+        set_relay(False)
+        print("\nExiting application\n")
+        # exit the application
+        sys.exit(0)
+```
+
+This script simply turns the relay on and off. When the relay is toggled, there is an audible "click" sound, and we see the LED turn on and off:
+
+![](gifs/test-1.gif)
+
+Cool!
+
+The next test is to make sure that I actually understand how to connect anything to the relays.
+Each relay has three pins, and which pins you choose affects if the relay opens or closes your circuit.
+
+Lets add a simple led to the previous circuit and try to make it shine when the relay is triggered:
+
+![](images/test-2.png)
+
+As you can see, I opted to use the second and third connections on the relay, which according to the schematic was the correct way to connect things so that the circiut closes only when the relay is triggered.
+
+So now, whenever we trigger the relay, it closes the circuit for us:
+
+![](gifs/test-2.gif)
+
+This may seem like a small achievment, but it's basically everything we need on the electronic side of things for this project!
