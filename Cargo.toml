@@ -1,2 +1,3 @@
 [workspace]
-members = ["garden-server",]
+members = ["garden-server", "examples/*"]
+default-members = ["garden-server"]
