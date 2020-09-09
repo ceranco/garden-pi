@@ -1,0 +1,53 @@
+syntax = "proto3";
+package garden_pi;
+
+import "google/protobuf/empty.proto";
+
+service GardenPi {
+	rpc SetValveState (SetValveStateRequest) returns (google.protobuf.Empty);
+
+	rpc GetValveState (GetValveStateRequest) returns (GetValveStateResponse);
+
+	rpc GetValveStates (google.protobuf.Empty) returns (GetValveStatesResponse);
+}
+
+message SetValveStateRequest {
+	Valve valve = 1;
+	ValveState state = 2;
+}
+
+message GetValveStateRequest {
+	Valve valve = 1;
+}
+
+message GetValveStateResponse {
+	ValveState state = 1;
+}
+
+message GetValveStatesResponse {
+	ValveState valve1State = 1;
+	ValveState valve2State = 2;
+	ValveState valve3State = 3;
+	ValveState valve4State = 4;
+	ValveState valve5State = 5;
+	ValveState valve6State = 6;
+	ValveState valve7State = 7;
+	ValveState valve8State = 8;
+}
+
+enum Valve {
+	Valve1 = 0;
+	Valve2 = 1;
+	Valve3 = 2;
+	Valve4 = 3;
+	Valve5 = 4;
+	Valve6 = 5;
+	Valve7 = 6;
+	Valve8 = 7;
+}
+
+enum ValveState {
+	Off = 0;
+	On = 1;
+}
+
