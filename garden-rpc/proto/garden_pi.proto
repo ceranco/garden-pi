@@ -4,18 +4,69 @@ package garden_pi;
 import "google/protobuf/empty.proto";
 
 service GardenPi {
-	rpc SetValveState (SetValveStateRequest) returns (google.protobuf.Empty);
+	/* Sets the working mode of the garden. If the mode is changed to manual, all
+	 * open valves are closed until manually opened. Likewise, if the mode is changed
+	 * to schedule, all manually open valves are closed and will be set according to 
+	 * the schedule. */
+	rpc SetMode (SetModeRequest) returns (google.protobuf.Empty);
 
+	/* Gets the currently set working mode of the garden. The default mode when the 
+	 * garden is started is `Schedule`. */
+	rpc GetMode (google.protobuf.Empty) returns (GetModeResponse);
+
+	/* Sets the gardening schedule, which will be saved to disk by the server.
+	 * The schedule will only be used in `Schedule` mode.
+	 * This **can** fail is the schedule is not valid. */
+	rpc SetSchedule (SetScheduleRequest) returns (SetScheduleResponse);
+	
+	/* Gets the current gardening schedule. */
+	rpc GetSchedule (google.protobuf.Empty) returns (GetScheduleResponse);
+
+	/* Sets the state of a specific valve.
+	 * This **can** fail, either because the mode is not set to `Manual`, 
+	 * or because too many valves are currently open. */
+	rpc SetValveState (SetValveStateRequest) returns (SetValveStateResponse);
+
+	/* Gets the state of a specific valve. */
 	rpc GetValveState (GetValveStateRequest) returns (GetValveStateResponse);
 
+	/* Gets a snapshot of the state of the valves. */
 	rpc GetValveStates (google.protobuf.Empty) returns (GetValveStatesResponse);
+}
+
+message SetModeRequest {
+	Mode mode = 1;
+}
+
+message GetModeResponse {
+	Mode mode = 1;
+}
+
+message SetScheduleRequest {
+	Schedule schedule = 1;
+}
+
+message SetScheduleResponse {
+	bool success = 1;
+}
+
+message GetScheduleResponse {
+	Schedule schedule = 1;
 }
 
 message SetValveStateRequest {
 	Valve valve = 1;
 	ValveState state = 2;
 }
-
+message SetValveStateResponse {
+	bool success = 1;
+	enum FailureReason {
+		None = 0;
+		IncorrectMode = 1;
+		ValveOverdraw = 2;
+	}
+	FailureReason reason = 2;
+}
 message GetValveStateRequest {
 	Valve valve = 1;
 }
@@ -33,6 +84,37 @@ message GetValveStatesResponse {
 	ValveState valve6State = 6;
 	ValveState valve7State = 7;
 	ValveState valve8State = 8;
+}
+
+/* A gardening schedule. Each field contains the timespans in which
+ * the matching valve should be open. */
+message Schedule {
+	repeated Timespan valve1 = 1;
+	repeated Timespan valve2 = 2;
+	repeated Timespan valve3 = 3;
+	repeated Timespan valve4 = 4;
+	repeated Timespan valve5 = 5;
+	repeated Timespan valve6 = 6;
+	repeated Timespan valve7 = 7;
+	repeated Timespan valve8 = 8;
+}
+
+message Timespan {
+	Timestamp start = 1;
+	Timestamp stop = 2;
+}
+
+message Timestamp {
+	uint32 hour = 1;
+	uint32 minute = 2;
+}
+
+/* Represents the possible working modes of the garden. */
+enum Mode {
+	/* The garden works as specified in the schedule. */
+	Scheduled = 0;
+	/* The schedule is ignored, and the valves are controlled manually. */
+	Manual = 1;
 }
 
 enum Valve {
